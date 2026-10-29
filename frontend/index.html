@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veritas — News Authenticity Index</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Minimalist Top Navigation -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-monogram">V</span>
+        <div class="brand-text">
+          <span class="brand-name">VERITAS</span>
+          <span class="brand-tag">Authenticity Index</span>
+        </div>
+      </div>
+
+      <nav class="header-nav">
+        <span class="pill pill-stone">FastAPI Engine</span>
+        <span class="pill pill-stone">TF-IDF &bull; 10k Vocab</span>
+        <span class="pill pill-stone">Logistic Regression</span>
+        <a href="/docs" target="_blank" class="nav-link" title="Open API Documentation">
+          API Specs <span class="arrow">&rarr;</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Document Container -->
+  <main class="page-container">
+    <!-- Editorial Masthead / Header -->
+    <header class="masthead">
+      <div class="masthead-badge">Machine Learning Verification</div>
+      <h1 class="masthead-title">Analyze narrative credibility in real-time.</h1>
+      <p class="masthead-lead">
+        Distinguish factual journalism from fabricated reports using statistical text patterns learned across 44,000+ benchmarked publications.
+      </p>
+    </header>
+
+    <!-- Benchmark Samples Bar -->
+    <section class="samples-section" aria-label="Quick Benchmark Samples">
+      <div class="samples-title">Quick Benchmarks</div>
+      <div class="samples-track" id="samplesContainer">
+        <!-- Loaded dynamically from /api/samples with clean fallbacks -->
+        <button type="button" class="sample-tag sample-tag-real" data-type="real-1">Reuters Wire &bull; Fiscal Policy</button>
+        <button type="button" class="sample-tag sample-tag-real" data-type="real-2">Pentagon &bull; Official Dispatch</button>
+        <button type="button" class="sample-tag sample-tag-fake" data-type="fake-1">Viral Alert &bull; Deep State</button>
+        <button type="button" class="sample-tag sample-tag-fake" data-type="fake-2">Clickbait &bull; Political Blog</button>
+      </div>
+    </section>
+
+    <!-- Workspace Grid -->
+    <div class="workspace-layout">
+      <!-- Input Column -->
+      <section class="panel editor-panel">
+        <div class="panel-header">
+          <div class="panel-heading">
+            <span class="panel-step">01</span>
+            <h2>Source Text</h2>
+          </div>
+          <button type="button" class="btn-ghost" id="clearBtn" title="Clear form inputs">Reset</button>
+        </div>
+
+        <form id="predictionForm" novalidate>
+          <div class="field-group">
+            <label for="newsTitle" class="field-label">Headline / Title <span class="label-hint">Optional</span></label>
+            <input 
+              type="text" 
+              id="newsTitle" 
+              class="field-input" 
+              placeholder="e.g. As U.S. budget fight looms, lawmakers negotiate terms..." 
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="newsText" class="field-label">Article Excerpt or Statement <span class="required-mark">*</span></label>
+              <span class="char-tally" id="textStats">0 words &bull; 0 chars</span>
+            </div>
+            <textarea 
+              id="newsText" 
+              class="field-textarea" 
+              rows="9" 
+              placeholder="Paste article body, dispatch text, or press statement here..." 
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-footer">
+            <button type="submit" class="btn-action" id="analyzeBtn">
+              <span class="spinner" id="btnSpinner" aria-hidden="true"></span>
+              <span id="btnLabel">Evaluate Authenticity</span>
+              <span class="btn-arrow" id="btnArrow">&rarr;</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Results Column -->
+      <section class="panel evaluation-panel" id="resultsPanel">
+        <div class="panel-header">
+          <div class="panel-heading">
+            <span class="panel-step">02</span>
+            <h2>Model Assessment</h2>
+          </div>
+          <span class="model-badge" id="modelStatusBadge">Awaiting Input</span>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-art" aria-hidden="true">
+            <div class="art-line"></div>
+            <div class="art-line short"></div>
+            <div class="art-line mini"></div>
+          </div>
+          <h3 class="empty-title">Ready for Analysis</h3>
+          <p class="empty-desc">
+            Submit a headline or article excerpt to inspect probabilistic credibility scores, keyword attribution, and token patterns.
+          </p>
+        </div>
+
+        <!-- Evaluation Results (Populated via JS) -->
+        <div class="results-container hidden" id="resultsContent">
+          <!-- Primary Stamp / Verdict -->
+          <div class="verdict-card" id="verdictCard">
+            <div class="verdict-primary">
+              <span class="verdict-kicker" id="verdictKicker">Evaluation Verdict</span>
+              <h3 class="verdict-headline" id="verdictTitle">Authentic Journalism</h3>
+              <p class="verdict-summary" id="verdictDesc">
+                Textual composition aligns with verified wire-service reporting and formal sourcing.
+              </p>
+            </div>
+            <div class="verdict-score-box">
+              <span class="score-digit" id="confidenceValue">99.8%</span>
+              <span class="score-caption">Certainty</span>
+            </div>
+          </div>
+
+          <!-- Dual Probability Ratio Track -->
+          <div class="ratio-box">
+            <div class="ratio-header">
+              <span class="ratio-label">Class Probability Distribution</span>
+              <span class="ratio-readout" id="ratioReadout">
+                <span class="ratio-part authentic-part" id="readoutReal">Real 99.8%</span>
+                <span class="ratio-divider">/</span>
+                <span class="ratio-part fake-part" id="readoutFake">Fake 0.2%</span>
+              </span>
+            </div>
+
+            <div class="split-bar-track">
+              <div class="split-bar-real" id="probRealBar" style="width: 50%;"></div>
+              <div class="split-bar-fake" id="probFakeBar" style="width: 50%;"></div>
+            </div>
+
+            <div class="split-bar-legend">
+              <span class="legend-item"><span class="legend-dot dot-real"></span> Authentic / Real</span>
+              <span class="legend-item"><span class="legend-dot dot-fake"></span> Fabricated / Fake</span>
+            </div>
+          </div>
+
+          <!-- Diagnostic Telemetry -->
+          <div class="telemetry-grid">
+            <div class="telemetry-cell">
+              <span class="telemetry-label">Analyzed Words</span>
+              <span class="telemetry-value" id="resWordCount">0</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-label">Characters</span>
+              <span class="telemetry-value" id="resCharCount">0</span>
+            </div>
+            <div class="telemetry-cell">
+              <span class="telemetry-label">Inference Latency</span>
+              <span class="telemetry-value" id="resLatency">0.0 ms</span>
+            </div>
+          </div>
+
+          <!-- Feature Explainability / Linguistic Signals -->
+          <div class="signals-section">
+            <div class="signals-header">
+              <span class="signals-title">Linguistic Factor Influence</span>
+              <span class="signals-note">TF-IDF &times; Logistic Weights</span>
+            </div>
+
+            <div class="signals-columns">
+              <!-- Real Indicators -->
+              <div class="signals-col">
+                <span class="col-title col-title-real">Authentic Signals</span>
+                <div class="tokens-wrap" id="realChips">
+                  <span class="token-empty">No active tokens</span>
+                </div>
+              </div>
+
+              <!-- Fake Indicators -->
+              <div class="signals-col">
+                <span class="col-title col-title-fake">Fake Signals</span>
+                <div class="tokens-wrap" id="fakeChips">
+                  <span class="token-empty">No active tokens</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Normalized Preprocessing Inspection -->
+          <details class="accordion-clean">
+            <summary class="accordion-trigger">
+              <span>View Normalized Preprocessing Output</span>
+              <span class="accordion-chevron">&darr;</span>
+            </summary>
+            <div class="accordion-body" id="cleanedPreview"></div>
+          </details>
+        </div>
+      </section>
+    </div>
+
+    <!-- Colophon / Technical Provenance -->
+    <footer class="colophon">
+      <div class="colophon-grid">
+        <div class="colophon-item">
+          <h4>Notebook Heritage</h4>
+          <p>Exported from <span class="mono-code">FakeNewsDetection.ipynb</span> into <span class="mono-code">best_logistic_regression_pipeline.pkl</span>.</p>
+        </div>
+        <div class="colophon-item">
+          <h4>Feature Mapping</h4>
+          <p>Scikit-Learn TF-IDF vectorizer mapping 10,000 statistical n-gram features against balanced news archives.</p>
+        </div>
+        <div class="colophon-item">
+          <h4>Held-Out Benchmark</h4>
+          <p>Validated on test split with <strong>99.0% Accuracy</strong> and a <strong>0.99 F1-score</strong> across dual categories.</p>
+        </div>
+        <div class="colophon-item">
+          <h4>System Notice</h4>
+          <p>Statistical NLP identifies characteristic vocabulary and stylistic cues. It complements but does not substitute for independent editorial verification.</p>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Minimalist Status Toast -->
+  <div class="toast-notice" id="toast"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
